@@ -1,15 +1,44 @@
 import Head from 'next/head'
+import Image from 'next/image'
 import Link from 'next/link'
 import {useTheme} from 'next-themes'
+import { useEffect } from 'react'
 
 export const siteTitle = "Monte's Portfolio"
 
 export default function Layout({ children, home }) {
-  const {theme, setTheme} = useTheme('light')
+  // Reference to checkbox input element
+  let inputCheckbox = ""
+  
+  const {theme, setTheme} = useTheme()
+
+  // Key for the value stored in localStorage
+  let themeKey = "theme"
+  let lightTheme = "light"
+  let darkTheme = "dark"
+
+  // Called only once when component loads
+  useEffect(() => {
+    // Get existing theme value from localStorage
+    let themeValue = localStorage.getItem(themeKey)
+
+    // If not theme is set then default to light mode
+    if (themeValue === null) {
+      setTheme(lightTheme)
+      return
+    }
+
+    // If the stored theme is dark - toggle the theme checkbox
+    if (themeValue == "dark") {
+      inputCheckbox.click()
+    }
+
+    setTheme(themeValue)
+  }, []);
 
   return (
-    <div className="min-h-full py-10 px-5 flex flex-col items-center h-screen bg-white dark:bg-black">
-      <div className="container max-w-xl flex flex-col h-screen">
+    <div className="py-5 px-5 min-h-screen flex flex-col items-center bg-white dark:bg-black">
+      <div className="container max-w-xl flex flex-col">
         <Head>
           <link rel="icon" href="/favicon.ico" />
           <meta
@@ -25,17 +54,44 @@ export default function Layout({ children, home }) {
           <meta name="og:title" content={siteTitle} />
           <meta name="twitter:card" content="summary_large_image" />
         </Head>
-        <header className="container max-w-xl mx-auto flex justify-between mb-10">
+        <header className="container max-w-xl mx-auto flex justify-between mb-5">
           {home ? 
-            <h1 className="text-4xl font-extrabold">Monte Thakkar</h1> :
-            <h1 className="text-3xl font-bold">Monte Thakkar</h1>
+            <p className="text-4xl font-extrabold">Monte Thakkar</p> :
+            <div className="flex flex-row">
+              <Link href="/">
+                <a className="flex justify-center items-center mr-2">
+                  <Image
+                    priority
+                    src="/images/profile.jpg"
+                    className="rounded-full"
+                    height={44}
+                    width={44}
+                    alt="Monte Profile Image"
+                  />
+                </a>
+              </Link>
+              <p className="text-2xl font-bold">
+                <Link href="/">
+                  <a>Monte Thakkar</a>
+                </Link>
+              </p>
+            </div>
           }
           <div className="flex items-center justify-center">          
             <label className="flex items-center cursor-pointer">
               <div className="relative">
-                <input type="checkbox" id="dark-mode-toggle" className="sr-only" 
+                <input
+                  type="checkbox"
+                  id="dark-mode-toggle"
+                  className="sr-only"
+                  ref={input => {
+                    // assigns a reference so we can trigger it later
+                    inputCheckbox = input;
+                  }}
                   onClick={() => {
-                    setTheme(theme === 'dark' ? 'light' : 'dark')
+                    let updatedTheme = theme === darkTheme ? lightTheme : darkTheme
+                    window.localStorage.setItem(themeKey, updatedTheme)
+                    setTheme(updatedTheme)
                   }}
                 />
                 <div className="container mx-auto flex justify-between bg-gray-600 w-14 h-8 rounded-full px-2 items-center">
@@ -53,7 +109,7 @@ export default function Layout({ children, home }) {
         </header>
         <main>{children}</main>
         {!home && (
-          <div className="mt-12">
+          <div className="text-lg font-normal my-4">
             <Link href="/">
               <a>← Back to home</a>
             </Link>
